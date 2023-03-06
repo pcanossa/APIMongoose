@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const User = require('../models/User');
+const bcrypt = require('bcrypt');
 
 //rotas da API
 
@@ -9,6 +10,10 @@ router.post('/', async (req, res) => {
     //req.body
     const {username, password, credential} = req.body;
 
+    //Salvando passsword por hash
+    const saltRound = 10;
+    const passwordHash = await bcrypt.hash(password, saltRound);
+
     if(!username || !password ) {
         res.status(422).json({message: "É necessário informar o username, password e a credencial!"})
         return
@@ -16,7 +21,7 @@ router.post('/', async (req, res) => {
 
     const user = {
         username,
-        password,
+        passwordHash,
         credential
     }
 
@@ -52,7 +57,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+/*router.get('/:id', async (req, res) => {
 
     //extrair dado pela requisição url
     const id = req.params.id;
@@ -67,7 +72,7 @@ router.get('/:id', async (req, res) => {
         res.status(404).json({ message: 'Usuário não encontrado' });
         console.log(err);
     }
-})
+})*/
 
 //Update - PUT e PATCH
 router.patch('/:id', async (req, res) => {
@@ -134,6 +139,32 @@ router.delete('/:id', async (req, res) => {
 
     } catch (err) {    
         res.status(500).json({error: "Erro ocorrido ao deletar o usuário"});
+    }
+})
+
+router.post('/login', async (req, res) => {
+
+    try {
+        const { username, password } = req.body;
+
+        const user = await User.findOne({username});
+
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        //comparando password hash com entrada do user
+        const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+
+        if (!passwordMatches) {
+            return res.status(404).json({ error: 'Senha incorreta' });
+        }
+
+        return res.status(200).json(user);
+
+    } catch (err) {    
+        return res.status(500).json({ error: 'Internal server error' });
+        console.log(err);
     }
 })
 

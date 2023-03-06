@@ -24,7 +24,6 @@ axios(config)
     console.log(error);
   });
 
-  */
   var data = JSON.stringify({
     "collection": "users",
     "database": "login",
@@ -54,6 +53,8 @@ axios(config)
     });
 
 Node
+*/
+
 
 
 
