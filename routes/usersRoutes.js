@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
     //req.body
     const {username, password, credential} = req.body;
 
-    //Salvando passsword por hash
+        //Salvando passsword por hash
     const saltRound = 10;
     const passwordHash = await bcrypt.hash(password, saltRound);
 
@@ -23,6 +23,15 @@ router.post('/', async (req, res) => {
         username,
         passwordHash,
         credential
+    }
+
+    //consultando de nome de usuário já está em uso
+   try {
+    const existingUser = await User.findOne({ username: username });
+    if (existingUser) {
+        return res.json({message: "Nome de usuário já existente"})
+    }
+    } catch (err) {
     }
 
     //create
@@ -150,7 +159,7 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({username});
 
         if (!user) {
-            return res.status(404).json({ error: 'Usuário não encontrado' });
+            return res.status(404).json({ error: 'Usuário ou senha incorretas' });
         }
 
         //comparando password hash com entrada do user
